@@ -10,12 +10,12 @@ class BKTreeImportAndExportTest < Test::Unit::TestCase
       odio non ipsum adipiscing ornare etiam sapien
     ].uniq
     terms.each do |term|
-      tree.add(term)
+      tree.add(term, term)
     end
 
     stream = StringIO.new
     tree.export(stream)
-
+    
     stream.rewind
     tree = BK::Tree.import(stream)
 
@@ -23,7 +23,7 @@ class BKTreeImportAndExportTest < Test::Unit::TestCase
     threshold = 1
     expected = terms.inject({}){ |acc, t|
       d = Text::Levenshtein.distance(t, search_term)
-      acc[t] = d if d <= threshold
+      acc[t] = {data: t, dist: d} if d <= threshold
       acc
     }
     assert expected.any?

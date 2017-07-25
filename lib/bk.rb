@@ -14,25 +14,32 @@ module BK
 
   class Node
     attr_reader :term, :children
+    attr_accessor :data
 
-    def initialize(term, distancer)
+    def initialize(term, distancer, data=nil)
       @term = term
       @children = {}
       @distancer = distancer
+      @data = data
     end
 
-    def add(term)
+    def add(term, data=nil)
       score = distance(term)
       if child = children[score]
-        child.add term
+        child.add term, data
       else
-        children[score] = Node.new(term, @distancer)
+        children[score] = Node.new(term, @distancer, data)
       end
     end
 
     def query(term, threshold, collected)
       distance_at_node = distance(term)
-      collected[self.term] = distance_at_node if distance_at_node <= threshold
+
+      if distance_at_node <= threshold
+        collected[self.term] = { dist: distance_at_node,
+                                 data: self.data }
+      end
+      # TODO: remove this recursion
       (-threshold..threshold).each do |d|
         child = children[distance_at_node + d] or next
         child.query term, threshold, collected
@@ -50,11 +57,11 @@ module BK
       @distancer = distancer
     end
 
-    def add(term)
+    def add(term, data=nil)
       if @root
-        @root.add term
+        @root.add term, data
       else
-        @root = Node.new(term, @distancer)
+        @root = Node.new(term, @distancer, data)
       end
     end
 
